@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+build.xml
+Copyright (C) 2002-2012 the odeToJava Team. All rights reserved.
+This file is part of odeToJava.
+
+odeToJava is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+odeToJava is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with odeToJava.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<project basedir="." default="run" name="odeToJava">
+
+  <target name="clean">
+    <delete dir="bin"/>
+    <delete file="odeToJava.jar"/>
+  </target>
+
+  <target name="init-jar">
+    <mkdir dir="bin"/>
+    <copy includeemptydirs="false" todir="bin">
+      <fileset dir="src" excludes="**/*.java"/>
+    </copy>
+    <javac srcdir="src" classpath="bin;lib/jscience.jar" debug="true" debuglevel="source,lines,vars" destdir="bin" source="1.6" target="1.6"/>
+
+    <unzip src="lib/jscience.jar" dest="bin">
+      <patternset>
+        <include name="**/*.class"/>
+      </patternset>
+    </unzip>
+  </target>
+
+  <target name="test-jar" depends="clean,init-jar">
+    <jar jarfile="odeToJava.jar" basedir="bin">
+      <fileset file="lib/*" excludes="**/.metadata"/>
+      <fileset file="referenceSolutions/*" excludes="**/.metadata"/>
+      <manifest>
+        <attribute name="Main-Class" value="ca.usask.simlab.odeToJava.tests.FunctionalityTest"/>
+        <attribute name="Class-Path" value="jscience.jar"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="manual-controller-jar" depends="clean,init-jar">
+    <jar jarfile="odeToJava.jar" basedir="bin">
+      <fileset file="lib/*" excludes="**/.metadata"/>
+      <fileset file="referenceSolutions/*" excludes="**/.metadata"/>
+      <manifest>
+        <attribute name="Main-Class" value="ca.usask.simlab.odeToJava.tests.ManualIVPController"/>
+        <attribute name="Class-Path" value="jscience.jar"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="manual-testable-jar" depends="clean,init-jar">
+    <jar jarfile="odeToJava.jar" basedir="bin">
+      <fileset file="lib/*" excludes="**/.metadata"/>
+      <fileset file="referenceSolutions/*" excludes="**/.metadata"/>
+      <manifest>
+        <attribute name="Main-Class" value="ca.usask.simlab.odeToJava.tests.ManualTestable"/>
+        <attribute name="Class-Path" value="jscience.jar"/>
+      </manifest>
+    </jar>
+  </target>
+ 
+
+  <target name="orbit-jar" depends="clean,init-jar">
+    <jar jarfile="odeToJava.jar" basedir="bin">
+      <fileset file="lib/*" excludes="**/.metadata"/>
+      <fileset file="referenceSolutions/*" excludes="**/.metadata"/>
+      <manifest>
+        <attribute name="Main-Class" value="ca.usask.simlab.odeToJava.tests.OrbitTest"/>
+        <attribute name="Class-Path" value="jscience.jar"/>
+      </manifest>
+    </jar>
+  </target> 
+
+  <target name="cardiac-jar" depends="clean,init-jar">
+    <jar jarfile="odeToJava.jar" basedir="bin">
+      <fileset file="lib/*" excludes="**/.metadata"/>
+      <fileset file="referenceSolutions/*" excludes="**/.metadata"/>
+      <manifest>
+        <attribute name="Main-Class" value="ca.usask.simlab.odeToJava.tests.Cardiac"/>
+        <attribute name="Class-Path" value="jscience.jar"/>
+      </manifest>
+    </jar>
+  </target> 
+
+  <target name="pollution-jar" depends="clean,init-jar">
+    <jar jarfile="odeToJava.jar" basedir="bin">
+      <fileset file="lib/*" excludes="**/.metadata"/>
+      <fileset file="referenceSolutions/*" excludes="**/.metadata"/>
+      <manifest>
+        <attribute name="Main-Class" value="ca.usask.simlab.odeToJava.tests.PollutionTest"/>
+        <attribute name="Class-Path" value="jscience.jar"/>
+      </manifest>
+    </jar>
+  </target>  
+
+  <target name="nonstiff-jar" depends="clean,init-jar">
+    <jar jarfile="odeToJava.jar" basedir="bin">
+      <fileset file="lib/*" excludes="**/.metadata"/>
+      <fileset file="referenceSolutions/*" excludes="**/.metadata"/>
+      <manifest>
+        <attribute name="Main-Class" value="ca.usask.simlab.odeToJava.tests.NonStiffDETestSet"/>
+        <attribute name="Class-Path" value="jscience.jar"/>
+      </manifest>
+    </jar>
+  </target>   
+
+  <target name="stiff-jar" depends="clean,init-jar">
+    <jar jarfile="odeToJava.jar" basedir="bin">
+      <fileset file="lib/*" excludes="**/.metadata"/>
+      <fileset file="referenceSolutions/*" excludes="**/.metadata"/>
+      <manifest>
+        <attribute name="Main-Class" value="ca.usask.simlab.odeToJava.tests.StiffDETestSet"/>
+        <attribute name="Class-Path" value="jscience.jar"/>
+      </manifest>
+    </jar>
+  </target>    
+
+  <target name="mol-jar" depends="clean,init-jar">
+    <jar jarfile="odeToJava.jar" basedir="bin">
+      <fileset file="lib/*" excludes="**/.metadata"/>
+      <fileset file="referenceSolutions/*" excludes="**/.metadata"/>
+      <manifest>
+        <attribute name="Main-Class" value="ca.usask.simlab.odeToJava.tests.MOLTest"/>
+        <attribute name="Class-Path" value="jscience.jar"/>
+      </manifest>
+    </jar>
+  </target>    
+ 
+  <target name="run">
+    <java jar="odeToJava.jar" fork="true">
+      <arg value="${arg0}"/> 
+    </java>
+  </target>
+
+  <target name="javadoc">
+    <mkdir dir="javadoc"/>
+    <javadoc destdir="javadoc">
+      <fileset dir="./src"/>
+      <classpath>
+        <fileset dir="./lib">
+          <include name="jscience.jar"/>
+        </fileset>
+      </classpath>
+    </javadoc>
+  </target>
+
+</project>

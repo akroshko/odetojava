@@ -1,0 +1,1141 @@
+\documentclass[10pt,letterpaper]{article}
+\usepackage{fullpage}
+\usepackage[T1]{fontenc}
+\usepackage{ae,aecompl}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{pdfsync}
+\usepackage{xcolor}
+\usepackage[
+pdfpagemode={UseOutlines},
+bookmarksnumbered,bookmarksopen,
+pdfstartview={FitH},
+colorlinks=true,
+linktocpage=true
+]{hyperref}
+% package setup
+\hypersetup{
+pdftitle={odeToJava Manual},
+pdfsubject={manual}}
+% lifted from http://texblog.org/tag/keywordstyle/
+\definecolor{javared}{rgb}{0.6,0,0} % for strings
+\definecolor{javagreen}{rgb}{0.25,0.5,0.35} % comments
+\definecolor{javapurple}{rgb}{0.5,0,0.35} % keywords
+\definecolor{javadocblue}{rgb}{0.25,0.35,0.75} % javadoc
+\usepackage{listings}
+\lstset{basicstyle=\small\ttfamily,
+        commentstyle=\color{javagreen}\textit,
+        stringstyle=\color{javared},
+%       morecommment=[s][\color{javadocblue}]{/**}{*/},
+        keywordstyle=\color{javapurple}\bfseries,
+        columns=fixed,
+        language=JAVA,
+        breaklines=true}
+
+\newcommand\odeToJavajar{{\tt odeToJava.jar}}
+\newcommand\Ant{\href{http://ant.apache.org/}{\sc Ant}}
+\newcommand\Complex{{\tt Complex}}
+\newcommand\Floatsf{{\tt Float64}}
+\newcommand\Floatsfv{{\tt Float64Vector}}
+\newcommand\Java{\href{http://www.java.com/en/about/}{\sc Java}}
+\newcommand\Javadoc{{\tt Javadoc}}
+\newcommand\Javolution{\href{http://javolution.org/}{\tt Javolution}}
+\newcommand\JScience{\href{http://jscience.org/}{\tt JScience}}
+\newcommand\jsciencejar{{\tt jscience.jar}}
+\newcommand\odj{{\tt odeToJava}}
+\newcommand\ode{{\tt ODE}}
+\newcommand\ivp{{\tt IVP}}
+\newcommand\ivpcont{{\tt IVPController}}
+\newcommand\tstble{{\tt Testable}}
+\newcommand\stster{{\tt SolutionTester}}
+
+\setlength\parindent{0in}
+\setlength\parskip{1ex}
+
+\title{The \odj{} Manual}
+\author{Andrew Kroshko}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+\odj{} is a problem solving environment~(PSE) designed to facilitate the
+development and prototyping of algorithms for solving Ordinary Differential
+Equations~(ODE). \odj{} is written in the object-oriented language \Java, which
+allows a modular construction and portability across many platforms. Currently
+supported methods for solving ODEs include the classic explicit
+Runge--Kutta~(ERK) methods~\cite{HairerNorsettWanner1993} and linearly-implicit
+additive Runge--Kutta~(ARK) methods~\cite{AscherRuuthSpiteri1997,
+BoscarinoRusso2009, CalvoDefrutosNovo2001, KennedyCarpenter2003}. The modular
+construction of \odj{} helps organize different numerical methods, facilitates
+the reuse of code, and allows a user to readily add new functionality such as
+integration formulas, error control methods, and different types of output.
+
+For linear algebra, as well as other matrix and vector computations, \odj{} uses
+the numerical library \JScience~\cite{Martinmichiellot2008}, which is a
+performance-oriented, thread safe, cross-platform pure \Java{} library that
+conforms to the generally accepted coding practices for the \Java{}
+language~\cite{Bloch2008}. In order to conform to \Java{} coding standards while
+preserving good performance, \JScience{} is based on the real-time \Java{}
+specification~\cite{DibbleBelliardiBrosgolETAL2006} compliant library
+\Javolution{} in order to allow object reuse through object pools. In addition,
+\odj{} itself uses the high-performance data structures provided by
+\Javolution{} to further enhance performance. \JScience{} also includes the
+\Floatsf{} and \Complex{} number types, which unlike the primitive data types in
+\Java{} are true object-oriented data types. Although \odj{} does not currently
+support complex numbers, it could readily be modified to do so.
+
+\section{Building \odj{}}
+
+\subsection{\odj{} Prerequisites}
+
+Building \odj{} requires the \Java{} SDK 1.6 or later and \Ant, which is a tool
+for \Java{} similar to {\tt make}. \Java{} can be obtained either from its main
+download website
+\url{http://www.oracle.com/technetwork/java/javase/downloads/index.html} or by
+using a package management system in the case of GNU/Linux and similar systems.
+On OS X, \Java{} and \Ant{} are typically installed by default, however, more
+advanced users can install alternate versions of \Java{} and \Ant. To check for
+the correct version of \Java, execute the following at the command prompt:
+\begin{verbatim}
+$ java -version
+\end{verbatim}
+The output should be similar to:
+\begin{verbatim}
+java version "1.7.0" Java(TM) SE Runtime Environment (build 1.7.0-b147) Java
+HotSpot(TM) 64-Bit Server VM (build 21.0-b17, mixed mode)
+\end{verbatim}
+% Canonical Java JDK installations for::
+% GNU/Linux:
+% OS X:
+% Windows:
+The build tool \Ant{} can be obtained from the following sources:
+\begin{itemize}
+  \item GNU/Linux users can find \Ant{} through the package management system for their
+    particular distribution.
+  \item OS X users who wish to install a different version of \Ant{} can download
+    it from its website or use their preferred package manager, such as
+    \href{http://finkproject.org/}{Fink} or \href{http://www.macports.org/}{MacPorts}.
+  \item Windows users can downloaded \Ant{} from its website.
+\end{itemize}
+See~ \url{http://ant.apache.org/manual/install.html} for the installation
+instructions if downloading from the \Ant{} website. To check that \Ant{} is
+installed properly, execute the following command at a command prompt:
+\begin{verbatim}
+$ ant -version
+\end{verbatim}
+The output should be similar to:
+\begin{verbatim}
+Apache Ant(TM) version 1.8.2 compiled on December 20 2010
+\end{verbatim}
+Typical sources of error include: not setting the {\tt ANT\_HOME} environment
+variable that specifies the \Ant{} installation directory, not updating the {\tt
+PATH} variable with the {\tt ANT\_HOME/bin} directory, or not setting the {\tt
+JAVA\_HOME} environment variable to the \Java{} installation directory. After
+\Ant{} is installed, if \odj{} is in a zip file, unzip \odj{} with the following
+commmand:
+\begin{verbatim}
+$ unzip odeToJava2.zip
+\end{verbatim}
+Once the \odj{} package is in the appropriate directory, go to the root
+directory of the \odj{} package:
+\begin{verbatim}
+$ cd odeToJava
+\end{verbatim}
+In this manual, all of the directories in this manual are referenced with
+respect to the root directory of the \odj{} package and \odj{} packages are
+referenced with respect to the {\tt ca.usask.simlab} package. The API
+documentation, which is in the \Javadoc{} format that is used almost universally
+by \Java{} software, contains a great deal of information that is not in this
+manual and is built by the command:
+\begin{verbatim}
+$ ant javadoc
+\end{verbatim}
+To view the \Javadoc, point your web browser to the {\tt javadoc/index.html}
+file.
+
+In general, to try new numerical methods or experiments with \odj{} it will be
+necessary to study the structure of the code including the \Javadoc{} and the
+examples provided within. That provides a starting point to trying novel and
+original tasks with the \odj{} framework.
+
+\subsection{Building and using \odj{} on the Command Line}\label{sec:build}
+
+The \odeToJavajar{} file is both a library that can be used by external programs
+and an executable for the examples included along with \odj. The different
+commands for building the \odeToJavajar{} file and the resulting executable are
+given in Table~\ref{tab:ant}.
+
+\begin{table}
+\begin{tabular}{|p{2.0in}|p{2.4in}|p{2.2in}|}
+\hline
+{\bf Command}                     & {\bf Description}                       & {\bf{\tt Main-Class} file} \\
+\hline
+\hline
+{\tt ant test-jar}                & Build an executable that tests the
+                                    basic functionality of \odj{}.          & {\tt tests/FunctionalityTest.java} \\
+\hline
+{\tt ant manual-controller-jar}   & Build an executable that runs the
+                                    code from Section~\ref{sec:basic},
+                                    which demonstrates the
+                                    {\tt odeToJava.controller}
+                                    package.                                & {\tt tests/ManualIVPController.java} \\
+\hline
+{\tt ant manual-testable-jar}     & Build an executable that runs the
+                                    code from
+                                    Section~\ref{sec:testsuite},
+                                    which demonstrates the
+                                    {\tt odeToJava.testsuite}
+                                    package.                                & {\tt tests/ManualTestable.java} \\
+\hline
+{\tt ant orbit-jar}               & Build an executable that solves
+                                    examples of celestial mechanics
+                                    problems
+                                    \cite{EnrightHullLindberg1975,
+                                          HairerNorsettWanner1993,
+                                          HairerSoderlind2005,
+                                          MazziaMagherini2008}.             & {\tt tests/OrbitTest.java} \\
+\hline
+{\tt ant cardiac-jar}             & Build an executable that solves the
+                                    Luo-Rudy \cite{LuoRudy1991} cardiac
+                                    problem.                                & {\tt tests/Cardiac.java} \\
+\hline
+{\tt ant pollution-jar}           & Build an executable that solves an
+                                    air pollution problem
+                                    \cite{MazziaMagherini2008}.             & {\tt tests/PollutionTest.java} \\
+\hline
+{\tt ant nonstiff-jar}            & Build an executable that solves the
+                                    nonstiff DE test set
+                                    from~\cite{EnrightHull1976,
+                                    HullEnrightFellenSedgwick1972}.         & {\tt tests/NonStiffDETestSet.java} \\
+\hline
+{\tt ant stiff-jar}               & Build an executable that solves the
+                                    stiff DE test set
+                                    from~\cite{EnrightHull1976,
+                                               EnrightHullLindberg1975}.    & {\tt tests/StiffDETestSet.java} \\
+\hline
+{\tt ant mol-jar}                 & Build an executable that solves a
+                                    PDE from
+                                    \cite{AscherRuuthSpiteri1997} that
+                                    has been discretized by the method
+                                    of lines and is additively split
+                                    into advection and diffusion terms.     & {\tt tests/MOLTest.java} \\
+\hline
+\end{tabular}
+\caption{The studies included with \odj{} and the \Ant{} commands that build them.}
+\label{tab:ant}
+\end{table}
+
+Regardless of the version of the {\tt .jar} file is built, the desired
+executable can be run with the command:
+\begin{verbatim}
+$ ant run
+\end{verbatim}
+The two examples described later in this manual, which are built with the {\tt
+tutorial-jar} \Ant{} command, take a total of about five minutes to run on a 2.6
+GHz AMD Athlon64 X2 machine.
+
+The compiled {\tt *.class} files can be cleaned up using the command:
+\begin{verbatim}
+$ ant clean
+\end{verbatim}
+
+To compile an appropriate \Java{} source code file against a version of the
+\odeToJavajar{} use the following procedure. Assume the source code is named
+{\tt Source.java} and it contains a class named {\tt Source}. Copy the
+\jsciencejar{} and \odeToJavajar{} into the same file folder as {\tt
+Source.java}. To compile the file {\tt Source.java} against \jsciencejar{} and
+\odeToJavajar{} use the command:
+\begin{verbatim}
+javac -classpath ./jscience.jar:./odeToJava.jar:./ Source.java
+\end{verbatim}
+On Windows machines, any classpath requires the {\tt :} to be replaced by {\tt
+;} and {\tt /} to be replaced by {\tt \textbackslash} in the above command. On
+Windows compile with:
+\begin{verbatim}
+javac -classpath .\jscience.jar;.\odeToJava.jar;.\ Source.java
+\end{verbatim} 
+To execute the built class use the command:
+\begin{verbatim}
+java -classpath ./jscience.jar:./odeToJava.jar:./ Source
+\end{verbatim}
+On Windows execute with:
+\begin{verbatim}
+java -classpath .\jscience.jar;.\odeToJava.jar;.\ Source
+\end{verbatim} 
+To increase the memory for better performance use the command:
+\begin{verbatim}
+java -classpath ./jscience.jar:./odeToJava.jar:./ -Xms512m -Xmx1024m -server
+Source
+\end{verbatim}
+For better performance on Windows execute with:
+\begin{verbatim}
+java -classpath .\jscience.jar;.\odeToJava.jar;.\ -Xms512m -Xmx1024m -server
+Source
+\end{verbatim} 
+The arguments {\tt -Xms512m} and {\tt -Xmx1024m} set the initial and maximum
+\Java{} virtual machine memory to 512 megabytes (the standard value = 2
+megabytes) and 1024 megabytes (the standard value = 64 megabytes) respectively.
+The {\tt -server} flag can be added to make the program run faster, although the
+program will take longer to compile.
+
+\subsection{Building The Manual}
+
+In order to build this manual, a \TeX{} distribution that provides \LaTeX{} is
+required. Some examples of this include \href{http://miktex.org/}{Mik\TeX} for Windows,
+\href{http://www.tug.org/mactex/2011/}{Mac\TeX} for OS X, and 
+\href{http://www.tug.org/texlive/}{\TeX Live} for GNU/Linux.
+Once the appropriate \LaTeX{} distribution is installed, run the following
+commands from the \odj{} root directory to build the manual:
+\begin{verbatim}
+  cd manual
+  pdflatex manual.tex
+  bibtex manual
+  pdflatex manual.tex
+  pdflatex manual.tex
+\end{verbatim}
+Note that {\tt pdflatex} needs to be run multiple times in order to get the
+cross-references and citations correct. Many common IDEs for \LaTeX{} will
+perform this task automatically.
+
+\section{Implementing ODEs in \odj}
+
+The ODEs that are included with \odj{} and their locations in the {\tt
+src/ca.usask/simlab/odeToJava} directory and important references are given in
+Table~\ref{tab:odes}.
+
+\begin{table}
+\begin{tabular}{|p{2in}|p{2.5in}|p{0.7in}|}
+\hline
+{\bf Location}                    &  {\bf Description}                                           & {\bf Reference}\\
+\hline
+\hline
+{\tt nonstiffDETest/*.java}       &  The nonstiff DE test set is a set of
+                                     standard nonstiff IVPs intended to test
+                                     IVP solvers.                                                & \cite{EnrightPryce1987,HullEnrightFellenSedgwick1972} \\
+\hline
+{\tt odes/Brusselator.java}       &  The Brusselator equation describes an
+                                     oscillatory chemical reaction equation
+                                     with two species.                                           & \cite{HairerNorsettWanner1993} \\
+\hline
+{\tt odes/BurgersMOL.java}        &  A semi-discretized advection-diffusion
+                                     equation combining the Burgers equation
+                                     for an advection term and a linear
+                                     diffusion term with variable viscosity.                     & \cite{AscherRuuthSpiteri1997} \\
+\hline
+{\tt odes/HiresODE.java}          &  An ODE from plant physiology that
+                                     describes the 'High Irradiance
+                                     RESponses' that model how light is
+                                     involved in morphogenesis.                                  & \cite{MazziaMagherini2008} \\
+\hline
+{\tt odes/LuoRudyODE.java}        &  An IVP that describes the Luo-Rudy
+                                     cardiac model that models the
+                                     electrical activity in a cardiac cell.                      & \cite{LuoRudy1991} \\
+\hline
+{\tt odes/OrbitArenstorfODE.java} &  A planar restricted 3-body problem
+                                     that describes a massless satellite
+                                     in a periodic orbit, known as an
+                                     \emph{Arenstorf orbit}, along with
+                                     the Earth and the Moon.                                     & \cite{HairerNorsettWanner1993,LeimkuhlerReich2004} \\
+\hline
+{\tt odes/PleiadesODE.java}       &  An IVP describing the motions of
+                                     seven stars (reminding one of the
+                                     famous Pleiades star cluster).                              & \cite{HairerNorsettWanner1993,MazziaMagherini2008} \\
+\hline
+{\tt odes/PollutionODE.java}      &  An IVP describing the reaction of air
+                                     pollution in the atmosphere.                                & \cite{HairerNorsettWanner1993,MazziaMagherini2008} \\
+\hline
+{\tt stiffDETest/*.java}          &  The stiff DE test set is a set of
+                                     standard stiff IVPs intended to test
+                                     IVP solvers designed for stiff
+                                     problems.                                                   & \cite{EnrightPryce1987,EnrightHull1976,Shampine1981} \\
+\hline
+\end{tabular}
+\caption{The IVPs that are included with \odj{}.}
+\label{tab:odes}
+\end{table}
+
+
+\subsection{Implementing an ODE}
+
+ODEs are created by subclassing either {\tt odeToJava.ode.ODE} in the case
+of a non-additive ODE or {\tt odeToJava.ode.AdditiveODE} in the case of a
+2-additive ODE that has a stiff linear part and nonstiff non-linear part. Both
+types of ODEs can be used with all categories of solvers in \odj, however, some
+of the solvers may not take advantage of the special structure of additive ODEs.
+For stiff problems without a natural stiff/non-stiff additive splitting, \odj{}
+uses the built-in IMEX methods as a linearly-implicit RK solver. Note that all
+\Java{} classes are defined in their own file that shares the name of the class.
+
+\subsubsection{Creating a simple ODE}\label{sec:single}
+
+In order to demonstrate how to create an ODE in \odj{} the example used is an
+\emph{Arenstorf orbit}, which is a 3-body problem from celestial mechanics in
+which a satellite of negligible mass travels in a periodic orbit of a type known
+as an Arenstorf orbit. See Table~\ref{tab:odes} for the specific file defining
+this problem~\cite{HairerNorsettWanner1993,LeimkuhlerReich2004}.
+
+In one variation of an Arenstorf orbit, the Earth and the Moon are put into
+circular orbits around their common center of mass using a coordinate system
+that is chosen in a such a way that both the Earth and the Moon remain fixed and
+only the satellite moves. The ODEs that describe this system are:
+\begin{gather}
+\begin{aligned}
+  \dfrac{d}{dt} y_1(t) =& y_1(t) + 2\dfrac{d}{dt} y_2(t) - \mu' \frac{y_1(t) + \mu}{D_1} - \mu\frac{y_1(t) - \mu'}{D_2},\\
+  \dfrac{d}{dt} y_2(t) =& y_2(t) - 2\dfrac{d}{dt} y_1(t) - \mu' \frac{y_2(t)}{D_1} - \mu\frac{y_2(t)}{D_2},
+\end{aligned}\nonumber \\
+\begin{aligned}
+  & D_1 = \left((y_1(t) + \mu)^2 + {y_2(t)}^2\right)^{\frac{3}{2}},\quad D_2 = \left((y_1(t) - \mu')^2 + {y_2(t)}^2\right)^{\frac{3}{2}},\\
+  & \mu = 0.01277471,\quad \mu' = 1 - \mu,
+\end{aligned}
+\label{eq:ems}
+\end{gather}
+where the functions $y_1(t),y_2(t): \mathbb{R} \rightarrow \mathbb{R}$ give the
+spatial location of the satellite at time $t$, the Earth is located at
+$(-\mu,0)$, and the Moon is located at $(\mu',0)$. The masses of the Earth and
+Moon are $\mu',\mu \in \mathbb{R}$ respectively. When an IVP is used with the
+initial values of:
+\begin{gather}
+\begin{aligned}
+  y_1(0) = 0.994, \quad & \dfrac{d}{dt}y_1(0) = 0,\nonumber\\
+  y_2(0) = 0,     \quad & \dfrac{d}{dt}y_2(0) = -2.00158510637908252240537862224,\nonumber
+\end{aligned}\nonumber \\
+\begin{aligned}
+  t_0 = 0,\quad t_f = 17.065216560157962558891706249,
+\end{aligned}
+\end{gather}
+where $y_1(0)$ and $y_2(0)$ are the coordinates of the satellite at the initial
+time $t_0$~\cite{HairerNorsettWanner1993}, the satellite has a periodic orbit
+where it returns to the initial state at positive integer multiples of $t_f$. A
+difficulty in integrating this system is that it has two singular points at the
+location of the Earth and the Moon. The satellite passes near to the singular
+point representing the position of the Moon, which causes difficulty when the
+problem is solved with a constant-stepsize.
+
+In order to set up an ODE, it is necessary to create a class in its own file
+that subclasses\\ {\tt odeToJava.ode.ODE}. The function evaluation is defined by
+overriding the {\tt f(Float64 t, Float64Vector x)} method, as well as the {\tt
+get\_size()} method to indicate the size of the ODE. The first step is to
+declare the package and import the necessary classes. It is required to import
+the \Floatsf{} and \Floatsfv{} classes from \JScience{}:
+
+\begin{lstlisting}
+import ca.usask.simlab.odeToJava.ode.ODE;
+
+import org.jscience.mathematics.numbers.Float64;
+import org.jscience.mathematics.vectors.Float64Vector;
+\end{lstlisting}
+
+To set up ODE itself, create a class that subclasses {\tt odeToJava.ode.ODE}:
+
+\begin{lstlisting}
+/**
+ * ODE that describes a 3-body problem with the Earth, Moon, and
+ * a massless satellite.
+ * <p>
+ * Benedict Leimkuhler, Sebastian Reich. "Simulating Hamiltonian
+ * dynamics", Cambridge University Press, pg. 161-163, 2004.
+ */
+public class OrbitArenstorfODE extends ODE {
+\end{lstlisting}
+
+The function {\tt get\_size} must be overridden with the size of the ODE system:
+
+\begin{lstlisting}
+    public int get_size() {
+        return 4;
+    }
+\end{lstlisting}
+
+Since \JScience{} uses the \Floatsf{} data type, and complex calculations are
+easier to implement using primitive datatypes such as {\tt double}, a conversion
+from \Floatsf{} to {\tt double} can be done at the beginning of each function
+evaluation using the {\tt Float64.doubleValue()} method, such as when the
+problem time $t$ is required for the calculation of the RHS. Use the method {\tt
+Float64Vector.getValue(int i)} to extract the {\tt i}${}^{\mathrm{th}}$
+component of the \Floatsfv{} data type. For more complex function evaluations,
+it may be necessary to keep the values as their \JScience{} types in order to
+take full advantage of the numerical methods provided by~\JScience. The method
+describing the RHS is declared and the first lines typically extract the
+necessary quantities:
+
+\begin{lstlisting}
+    public Float64Vector f(Float64 t,Float64Vector y) {
+        double y0 = y.getValue(0);
+        double y1 = y.getValue(1);
+        double y2 = y.getValue(2);
+        double y3 = y.getValue(3);
+\end{lstlisting}
+
+A typical procedure is to create a new array of {\tt double} types to store
+the results of the function evaluation, after which the function evaluation can
+be computed:
+
+\begin{lstlisting}
+        double[] yp = new double[y.getDimension()];
+
+        double d1 = Math.pow(Math.pow((y0 + mu), 2) + y1*y1, 1.5);
+        double d2 = Math.pow(Math.pow((y0 - muhat), 2) + y1*y1, 1.5);
+
+        yp[0] = y2;
+        yp[1] = y3;
+        yp[2] = y0 + 2 * y3 - muhat * (y0 + mu) / d1 - mu*(y0 - muhat) / d2;
+        yp[3] = y1 - 2 * y2 - muhat * y1 / d1 - mu*y1 / d2;
+\end{lstlisting}
+
+For the return value, it is necessary to convert from the array of {\tt double}
+values back into a {\tt Float64Vector} object using the {\tt
+Float64Vector.valueOf(double[] a)} method. \odj{} requires the RHS value to be
+returned as a {\tt Float64Vector}:
+\begin{lstlisting}
+        return Float64Vector.valueOf(yp);
+    }
+\end{lstlisting}
+Additionally, this particular problem requires that two constants to be defined
+and this is done using instance variables:
+\begin{lstlisting}
+    private final double mu = 0.012277471; // masses of planet and sun
+    private final double muhat = 1.0 - mu; // respectively
+}
+\end{lstlisting}
+
+\subsubsection{Implementing a 2-Additive ODE}\label{sec:additive}
+
+An advection-diffusion problem from~\cite{AscherRuuthSpiteri1997}, which has the
+well-known Burgers equation as the advection component and a
+constant-coefficient linear diffusion component, is used as an example of how to
+implement a 2-additive ODE. The IVP is given as:
+\begin{align}
+  \dfrac{d}{dt} u_i(t) &= u_i(t) \frac{u_{i-1}(t) - u_i(t)}{\Delta x} + \frac{u_{i-1}(t) - 2 u_i(t) + u_{i+1}(t)}{(\Delta x)^2},\nonumber\\
+  u_i(0) &= \sin\left(\pi\,i\,{\Delta x}\right),\nonumber\\
+  u_1(t) &= 0,\nonumber\\
+  u_m(t) &= 0,
+\end{align}
+where $u_i \in \mathbb{R}$ is the concentration of grid point $i \in [1,m]$ in
+the spatial interval $x \in [0,1]$, $\Delta x$ is the spatial grid spacing, and
+$\nu$ represents the diffusion coefficient or viscosity.
+
+In order to set up a 2-additive ODE, it is necessary to create a class in its
+own file that subclasses {\tt odeToJava.ode.AdditiveODE}. It is not necessary to
+explicitly split the ODE in order to use the IMEX methods provided with \odj,
+however, doing so can be advantageous and it eliminates a costly calculation
+involving the Jacobian during the automatic splitting~\cite{CooperSayfy1983}.
+
+The methods that must be overridden are {\tt f1(Float64 t, Float64Vector y)} and
+{\tt f2(Float64 t, Float64Vector y)}. The convention used by IMEX methods in
+\odj{} is that the method {\tt f1} corresponds to the non-linear component of
+the ODE and the method {\tt f2} corresponds to the linear component of the ODE.
+
+The source code for the following class can be found in {\tt
+odeToJava.odes.BurgersMOLODE}. Like the case with a non-additive ODE, the
+package and imports must be defined first:
+
+\begin{lstlisting}
+import org.jscience.mathematics.numbers.Float64;
+import org.jscience.mathematics.vectors.Float64Vector;
+import org.jscience.mathematics.vectors.Float64Matrix;
+import ca.usask.simlab.odeToJava.ode.AdditiveODE;
+\end{lstlisting}
+
+Create a class that subclasses the {\tt AdditiveODE} class:
+
+\begin{lstlisting}
+/**
+ * An ODE derived from the spatial discretization by finite differences
+ * of the Burgers advection equation with diffusion.
+ *
+ * Uri Ascher, Steven Ruuth, Raymond Spiteri. "Implicit-explicit
+ * Runge-Kutta methods for time-dependent partial differential equations",
+ * Applied Numerical Mathematics, vol. 25, pg. 151-167, 1997.
+ */
+public class BurgersMOLODE extends AdditiveODE {
+\end{lstlisting}
+
+Set up any necessary member variables, in this case a constructor is used for
+the parameters:
+
+\begin{lstlisting}
+    private int n = 0;
+
+    private double dx; // spatial stepsize
+    private double nu; // the diffusion coefficient
+    private double[][] jac;
+
+    @Override
+    public int get_size() {
+        return n;
+    } 
+
+    /**
+     * The constructor for the ODE.
+     */
+    public BurgersMOLODE(int n, Float64 dx, Float64 nu) {
+        this.dx = dx.doubleValue();
+        this.n = n;
+        this.nu = nu.doubleValue();
+        jac = new double[n][n];
+    }
+\end{lstlisting}
+
+Override the {\tt f1} method for the non-linear part of the problem, advection in this case:
+
+\begin{lstlisting}
+    @Override
+    public Float64Vector f1(Float64 t, Float64Vector y) {
+        double[] yp = new double[y.getDimension()];
+
+        // apply upwind finite differences
+        // the front point as a Dirchlet boundary condition
+        yp[0] = 0.0;
+        // the middle points
+        for (int i = 1; i < y.getDimension() - 1; i++)
+        {
+            yp[i] = y.getValue(i)*(y.getValue(i-1) - y.getValue(i)) / dx;
+        }
+        // the end point as a Dirchlet boundary condition
+        yp[n-1] = 0.0;
+
+        return Float64Vector.valueOf(yp);
+    }
+\end{lstlisting}
+
+Override the {\tt f2} method for the linear part of the problem, linear
+constant-coefficient diffusion in this case:
+
+\begin{lstlisting}
+    @Override
+    public Float64Vector f2(Float64 t, Float64Vector y) {
+        double[] yp = new double[y.getDimension()];
+
+        // the front point as a Dirchlet boundary condition
+        yp[0] =  0.0;
+        // the middle points
+        for (int i = 1; i < y.getDimension() - 1; i++)
+        {
+            yp[i] = nu*(y.getValue(i-1) - 2.0*y.getValue(i) + y.getValue(i+1)) / (dx*dx);
+        }
+        // the end point as a Dirchlet boundary condition
+        yp[n-1] = 0.0;
+
+        return Float64Vector.valueOf(yp);
+    }
+\end{lstlisting}
+
+Define an analytical Jacobian, which avoids expensive numerical
+finite-differencing for finding the Jacobian:
+
+\begin{lstlisting}
+    @Override
+    public Float64Matrix jacobian(Float64 t, Float64Vector y) {
+
+        double coeff = nu/(dx*dx);
+        for (int i = 1; i < n-1; i++) {
+            jac[i][i-1] = coeff;
+            jac[i][i] = -2.0*coeff;
+            jac[i][i+1] = coeff;
+        }
+
+        return Float64Matrix.valueOf(jac);
+    }
+}
+\end{lstlisting}
+
+The {\tt f} method is not overridden and in the {\tt AdditiveODE} class it is
+calculated internally by adding the {\tt f1} and {\tt f2} together.
+
+\section{The \ivpcont, \stster, and \tstble{}}
+
+The \ivpcont, \stster, and \tstble{} classes provide interfaces to the core
+\odj{} solver, in order to allow the user to easily experiment with different
+numerical methods.
+
+\subsection{Basic Use}\label{sec:basic}
+
+In order to allow the user to easily solve problems with many standard ODE
+methods and their commonly used parameters, the \ivpcont{} class is a
+wrapper around the core \odj{} solver and its modules. This provides an interface for
+testing as well as providing a base on which interfaces such as GUIs for \odj{}
+can be built.
+
+An auxiliary class for \ivpcont{} is \ivp{}, which stores an \ode{} object along
+with a set of initial conditions. The following shows how to set up a simple
+solver using {\tt IVPController}, that solves the IVPs defined by the classes
+{\tt OrbitArenstorfODE} and {\tt BurgersMOLODE} from Section~\ref{sec:single}
+and~\ref{sec:additive}:
+
+\begin{lstlisting}
+import org.jscience.mathematics.numbers.Float64;
+import org.jscience.mathematics.vectors.Float64Vector;
+
+import ca.usask.simlab.odeToJava.controller.IVP;
+import ca.usask.simlab.odeToJava.controller.IVPController;
+import ca.usask.simlab.odeToJava.modules.io.writers.DiskWriter;
+import ca.usask.simlab.odeToJava.scheme.ERKButcherTableau;
+import ca.usask.simlab.odeToJava.scheme.IMEXESDIRKButcherTableau;
+\end{lstlisting}
+
+Create a new class with the standard main method. In general, I/O exceptions
+raised by \odj{} components should be handled individually, however, for the
+purpose of this tutorial the program is simply terminated.
+
+\begin{lstlisting}
+public class ManualIVPController {
+    public static void main(String[] args) throws Exception {
+        IVP ivp;
+        IVPController controller;
+\end{lstlisting}
+
+An \ivp{} class is created that consists of an initial time, initial
+values and an \ode{} class:
+
+\begin{lstlisting}
+        ivp = new IVP(new OrbitArenstorfODE(),
+                      Float64.valueOf(0),
+                      Float64Vector.valueOf(
+                        0.994,
+                        0.0,
+                        0.0,
+                        -2.00158510637908252240537862224));
+\end{lstlisting}
+
+Create an \ivpcont{} class by using the final time and the \ivp{} class:
+
+\begin{lstlisting}
+        controller = new IVPController(ivp, Float64.valueOf(17.1));
+\end{lstlisting}
+
+An excellent general-purpose nonstiff ERK method is the Dormand--Prince 5(4)
+method, however, any Butcher tableau provided with \odj{} can be used. See the
+\Javadoc{} for \\ {\tt odeToJava.scheme.ERKButcherTableau} to see the
+complete set of ERK methods:
+
+\begin{lstlisting}
+        controller.set_butcher_tableau(
+          ERKButcherTableau.get_DormandPrince54_tableau());
+\end{lstlisting}
+
+\odj{} supports several types of error control. For this example, we use the
+standard embedded error-estimation method along with the Dormand--Prince method:
+
+\begin{lstlisting}
+        controller.set_emb_error_control();
+\end{lstlisting}
+
+\odj{} contains modules for producing solution arrays in memory and writing to a
+file, that facilitate interfacing \odj{} with other programs. In this case, the
+output is to a file at a fixed interval using the special dense output method
+provided by the Dormand--Prince method~\cite{HairerNorsettWanner1993}:
+
+\begin{lstlisting}
+        controller.write_at_interval(0.1);
+        controller.add_solution_writer(
+          new DiskWriter("output/outputOrbitManual.txt"));
+\end{lstlisting}
+
+Finally with the ODE set up, it can be solved with the {\tt run} method of the
+{\tt IVPController} class:
+
+\begin{lstlisting}
+        controller.run();
+\end{lstlisting}
+
+Using the same methodology, an \ivpcont{} can be set up for the problem
+described by the {\tt BurgersMOLODE} class that is given above. The method used
+is the order 4(3) method from \cite{KennedyCarpenter2003}: See the \Javadoc{}
+for \\ {\tt odeToJava.scheme.IMEXESDIRKButcherTableau} to see the complete
+set of IMEX methods:
+
+\begin{lstlisting}
+        ivp = new IVP(new BurgersMOLODE(127,Float64.valueOf(1./126.),Float64.valueOf(0.01)),
+                      Float64.valueOf(0),
+                      Float64Vector.valueOf(
+                        0.000000000000000000e+00, 2.493069173807287153e-02,
+                        4.984588566069715621e-02, 7.473009358642423994e-02,
+                        9.956784659581664754e-02, 1.243437046474851621e-01,
+                        1.490422661761744150e-01, 1.736481776669303312e-01,
+                        1.981461431993975508e-01, 2.225209339563143929e-01,
+                        2.467573976902936173e-01, 2.708404681430051086e-01,
+                        2.947551744109041527e-01, 3.184866502516844333e-01,
+                        3.420201433256687129e-01, 3.653410243663949841e-01,
+                        3.884347962746946825e-01, 4.112871031306115088e-01,
+                        4.338837391175581204e-01, 4.562106573531629627e-01,
+                        4.782539786213181876e-01, 4.999999999999999445e-01,
+                        5.214352033794980024e-01, 5.425462638657593262e-01,
+                        5.633200580636219534e-01, 5.837436722347897344e-01,
+                        6.038044103254773809e-01, 6.234898018587334834e-01,
+                        6.427876096865392519e-01, 6.616858375968593942e-01,
+                        6.801727377709193556e-01, 6.982368180860727414e-01,
+                        7.158668492597183297e-01, 7.330518718298262293e-01,
+                        7.497812029677340950e-01, 7.660444431189780135e-01,
+                        7.818314824680298036e-01, 7.971325072229223929e-01,
+                        8.119380057158565034e-01, 8.262387743159949061e-01,
+                        8.400259231507714031e-01, 8.532908816321554957e-01,
+                        8.660254037844385966e-01, 8.782215733702285476e-01,
+                        8.898718088114685454e-01, 9.009688679024190350e-01,
+                        9.115058523116731370e-01, 9.214762118704076244e-01,
+                        9.308737486442041353e-01, 9.396926207859083169e-01,
+                        9.479273461671317014e-01, 9.555728057861406777e-01,
+                        9.626242469500120302e-01, 9.690772862290779610e-01,
+                        9.749279121818236193e-01, 9.801724878485438275e-01,
+                        9.848077530122080203e-01, 9.888308262251285230e-01,
+                        9.922392066001720634e-01, 9.950307753654014098e-01,
+                        9.972037971811801293e-01, 9.987569212189223444e-01,
+                        9.996891820008162455e-01, 1.000000000000000000e+00,
+                        9.996891820008162455e-01, 9.987569212189223444e-01,
+                        9.972037971811801293e-01, 9.950307753654014098e-01,
+                        9.922392066001720634e-01, 9.888308262251285230e-01,
+                        9.848077530122080203e-01, 9.801724878485438275e-01,
+                        9.749279121818236193e-01, 9.690772862290779610e-01,
+                        9.626242469500121413e-01, 9.555728057861406777e-01,
+                        9.479273461671318124e-01, 9.396926207859084279e-01,
+                        9.308737486442042464e-01, 9.214762118704076244e-01,
+                        9.115058523116732481e-01, 9.009688679024191460e-01,
+                        8.898718088114687674e-01, 8.782215733702286586e-01,
+                        8.660254037844387076e-01, 8.532908816321557177e-01,
+                        8.400259231507715141e-01, 8.262387743159947950e-01,
+                        8.119380057158566144e-01, 7.971325072229226150e-01,
+                        7.818314824680301367e-01, 7.660444431189780135e-01,
+                        7.497812029677344281e-01, 7.330518718298264513e-01,
+                        7.158668492597185518e-01, 6.982368180860728524e-01,
+                        6.801727377709196887e-01, 6.616858375968596162e-01,
+                        6.427876096865394739e-01, 6.234898018587335944e-01,
+                        6.038044103254777140e-01, 5.837436722347901785e-01,
+                        5.633200580636222865e-01, 5.425462638657595482e-01,
+                        5.214352033794981134e-01, 5.000000000000003331e-01,
+                        4.782539786213184652e-01, 4.562106573531631293e-01,
+                        4.338837391175582314e-01, 4.112871031306119529e-01,
+                        3.884347962746946270e-01, 3.653410243663952617e-01,
+                        3.420201433256688794e-01, 3.184866502516849329e-01,
+                        2.947551744109045968e-01, 2.708404681430054417e-01,
+                        2.467573976902938393e-01, 2.225209339563149480e-01,
+                        1.981461431993976063e-01, 1.736481776669306920e-01,
+                        1.490422661761747203e-01, 1.243437046474853425e-01,
+                        9.956784659581717489e-02, 7.473009358642467015e-02,
+                        4.984588566069748233e-02, 2.493069173807309705e-02,
+                        1.224646799147353207e-16));
+        controller = new IVPController(ivp, Float64.valueOf(2.0));
+        controller.set_butcher_tableau(IMEXESDIRKButcherTableau.get_KC43_tableau());
+        controller.set_emb_error_control();
+        controller.write_at_interval(0.1);
+        controller.add_solution_writer(
+          new DiskWriter("output/outputMOLManual.txt"));
+        controller.run();
+    }
+}
+\end{lstlisting}
+
+The output array can now be found in the files {\tt
+output/outputOrbitManual.txt} and {\tt output/outputMOLManual.txt}.
+
+\subsection{Error Control}
+
+The basic parameters for a variable stepsize solver are the absolute tolerances
+and relative tolerances~\cite{HairerNorsettWanner1993}. Absolute tolerance is
+set as follows:
+
+\begin{lstlisting}
+controller.set_atol(1e-8);
+\end{lstlisting}
+
+Relative tolerance is set as follows:
+
+\begin{lstlisting}
+controller.set_rtol(1e-6);
+\end{lstlisting}
+
+There are other stepsize-control heuristics that can be set for the standard
+error-controller methods that allow the user to fine tune the controller. {\tt
+amax\_normal} is the factor for the maximum increase in step size, and must be
+greater than one:
+
+\begin{lstlisting}
+controller.set_amax_normal(3.0);
+\end{lstlisting}
+
+The {\tt amax\_rejected} parameter is the factor for the maximum increase in step
+size if the last step was rejected, and must be one or greater:
+
+\begin{lstlisting}
+controller.set_amax_rejected(0.8);
+\end{lstlisting}
+
+The {\tt amin} parameter is the maximum decrease in step size, and must be
+between zero and one:
+
+\begin{lstlisting}
+controller.set_amin(0.2);
+\end{lstlisting}
+
+The safety factor is the fraction of the optimal step size to take, and must be
+less than one:
+
+\begin{lstlisting}
+controller.set_safety(0.95);
+\end{lstlisting}
+
+\subsection{Output}
+
+\ivpcont{} has several methods that produce output and several different output
+modules can be used simultaneously. The most basic method is to write every
+solution point, however, this is only possible for certain problems because
+large or long running problems will exceed the available disk space:
+
+\begin{lstlisting}
+controller.write_all_points();
+\end{lstlisting}
+
+The output can be interpolate to a fixed time interval such as every 0.1:
+
+\begin{lstlisting}
+controller.write_at_interval(0.1);
+\end{lstlisting}
+
+The output can be interpolated to a series of solution times given in a
+\Floatsfv{} data type:
+
+\begin{lstlisting}
+controller.write_at_array(array_of_times);
+\end{lstlisting}
+
+The standard output format consists of time in the first column of the file,
+then there are columns for each solution component of the ODE. Custom solution
+writers can be added as follows:
+
+\begin{lstlisting}
+controller.add_solution_writer(new DiskWriter("output/outputManualOrbit.txt"));
+\end{lstlisting}
+
+Another possibility is to use the {\tt
+odetojava.testsuite.SolutionCollector} class to store the solution times and
+solution values into arrays. The solution times and values can then be retrieved
+later from this object.
+
+\begin{lstlisting}
+collector = new SolutionCollector();
+controller.add_solution_writer(collector);
+times = collector.get_times();
+values collector.get_values();
+\end{lstlisting}
+
+\subsection{The test suite}\label{sec:testsuite}
+
+The classes \stster{} and \tstble{} provide an additional set of interfaces to
+allow the user to solve an IVP with a particular method: either with a set of
+stepsizes in the case of a constant-stepsize solver or a set of absolute and
+relative tolerances in the case of a variable-stepsize solver. In addition, the
+solution can be compared to a previously generated reference solution. This
+allows many methods and problems to be quickly evaluated with a range of
+parameters, by using the \stster{} and \tstble{} classes, without the user
+having to explicitly write a driver.
+
+The \stster{} class provides a more extensive interface for testing a variety of
+methods and parameters, while the \tstble{} class provides an easier to use
+interface built on top of the \stster{} class. Specific examples that use the
+\tstble{} class can be found in most of the source code files referenced in
+Table~\ref{tab:odes}.
+
+\subsubsection{Creating a \tstble{} class}
+
+The {\tt Testable} class lets the user run a variety of methods on a given
+problem and compare the result to a reference solution. An example demonstrating
+constant stepsize, embedded error control, and step-doubling error control on
+the ODEs defined in Section~\ref{sec:single} and~\ref{sec:additive} is:
+
+\begin{lstlisting}
+import java.util.Vector;
+import java.util.Arrays;
+
+import org.jscience.mathematics.vectors.Float64Vector;
+import org.jscience.mathematics.numbers.Float64;
+
+import ca.usask.simlab.odeToJava.testSuite.Testable;
+import ca.usask.simlab.odeToJava.scheme.IMEXESDIRKButcherTableau;
+
+
+public class ManualTestable {
+    public static void main(String[] args) throws Exception {
+        Vector STEPSIZES = new Vector(Arrays.asList(1e-2, 3.16277e-3,
+                                                    1e-3, 3.16277e-4,
+                                                    1e-4));
+        Vector ORBIT_RTOLS = new Vector(Arrays.asList(1e-4, 3.16277e-5,
+                                                      1e-5, 3.16277e-6,
+                                                      1e-6, 3.16277e-7,
+                                                      1e-7, 3.16277e-8,
+                                                      1e-8));
+        Vector ORBIT_ATOLS = new Vector(Arrays.asList(1e-8, 3.16277e-9,
+                                                      1e-9, 3.16277e-10,
+                                                      1e-10, 3.16277e-11,
+                                                      1e-11, 3.16277e-12,
+                                                      1e-12));
+        Vector MOL_RTOLS = new Vector(Arrays.asList(1e-2, 3.16277e-3,
+                                                    1e-3, 3.16277e-4,
+                                                    1e-4, 3.16277e-5,
+                                                    1e-5));
+        Vector MOL_ATOLS = new Vector(Arrays.asList(1e-2, 3.16277e-3,
+                                                    1e-3, 3.16277e-4,
+                                                    1e-4, 3.16277e-5,
+                                                    1e-5));
+
+        Testable orbit = new Testable(new OrbitArenstorfODE(),
+                                      "01orbitReference.txt");
+        Testable mol = new Testable(new BurgersMOLODE(127,Float64.valueOf(1./126.),Float64.valueOf(0.01)),
+                                    "burgersMOLReference.txt");
+
+        orbit.test_const(ERKButcherTableau.get_DormandPrince54_tableau(),
+                         STEPSIZES);
+        orbit.test_embedded(ERKButcherTableau.get_DormandPrince54_tableau(),
+                            ORBIT_RTOLS,ORBIT_ATOLS);
+        orbit.test_sd(ERKButcherTableau.get_DormandPrince54_tableau(),
+                      ORBIT_RTOLS,ORBIT_ATOLS);
+
+        mol.test_embedded(IMEXESDIRKButcherTableau.get_KC32_tableau(),
+                          MOL_RTOLS,MOL_ATOLS);
+        mol.test_embedded(IMEXESDIRKButcherTableau.get_KC43_tableau(),
+                          MOL_RTOLS,MOL_ATOLS);
+        mol.test_embedded(IMEXESDIRKButcherTableau.get_KC54_tableau(),
+                          MOL_RTOLS,MOL_ATOLS);
+    }
+}
+\end{lstlisting}
+
+\section{Building the example code}
+
+The \odj{} example that demonstrates \ivpcont{} from Section~\ref{sec:basic} can
+be built on the command line by following the general procedure in
+Section~\ref{sec:build}:
+{\scriptsize
+\begin{verbatim}
+javac -classpath ./jscience.jar:./odeToJava.jar:./ BurgersMOLODE.java OrbitArenstorfODE.java ManualIVPController.java
+\end{verbatim}
+}
+On Windows compile with:
+{\scriptsize
+\begin{verbatim}
+javac -classpath .\jscience.jar;.\odeToJava.jar;.\ BurgersMOLODE.java OrbitArenstorfODE.java ManualIVPController.java
+\end{verbatim} 
+}
+To execute this example use the command:
+{\scriptsize
+\begin{verbatim}
+java -classpath ./jscience.jar:./odeToJava.jar:./ ManualIVPController
+\end{verbatim}
+}
+On Windows execute with:
+{\scriptsize
+\begin{verbatim}
+java -classpath .\jscience.jar;.\odeToJava.jar;.\ ManualIVPController
+\end{verbatim} 
+}
+
+The \odj{} example that demonstrates \tstble{} from Section~\ref{sec:testsuite}
+can be built on the command line by the same general procedure:
+{\scriptsize
+\begin{verbatim}
+javac -classpath ./jscience.jar:./odeToJava.jar:./ BurgersMOLODE.java OrbitArenstorfODE.java ManualTestable.java
+\end{verbatim}
+}
+On Windows compile with:
+{\scriptsize
+\begin{verbatim}
+javac -classpath .\jscience.jar;.\odeToJava.jar;.\ BurgersMOLODE.java OrbitArenstorfODE.java ManualTestable.java
+\end{verbatim} 
+}
+To execute this example use the command:
+{\scriptsize
+\begin{verbatim}
+java -classpath ./jscience.jar:./odeToJava.jar:./ ManualTestable
+\end{verbatim} 
+}
+On Windows execute with:
+{\scriptsize
+\begin{verbatim}
+java -classpath .\jscience.jar;./odeToJava.jar;.\ ManualTestable
+\end{verbatim}  
+}
+
+Sample output from the example code in~\ref{sec:testsuite}.
+{\tiny
+\begin{verbatim}
+run:
+ Reference Solution: referenceSolutions/01orbitReference.txt
+ Method: Dormand-Prince, order 5, embedded order 4
+          Solver   InitStepSize         AbsTol         RelTol       Time (s)       AbsError       RelError     MinSigFigs     AvgSigFigs
+               0    1.00000E-02            N/A            N/A    1.15000E-01     8.38704E00     6.41626E03              0              0
+               0    3.16277E-03            N/A            N/A    6.20000E-02     1.59046E00     4.75556E01              0              1
+               0    1.00000E-03            N/A            N/A    1.64000E-01    6.91354E-04    1.37997E-02              1              4
+               0    3.16277E-04            N/A            N/A    4.16000E-01    9.62481E-07    2.47659E-05              4              7
+               0    1.00000E-04            N/A            N/A     1.30500E00    2.81928E-09    6.93880E-08              6              9
+
+ Reference Solution: referenceSolutions/01orbitReference.txt
+ Method: Dormand-Prince, order 5, embedded order 4
+          Solver   InitStepSize         AbsTol         RelTol       Time (s)       AbsError       RelError     MinSigFigs     AvgSigFigs
+               0      Automatic    1.00000E-03    1.00000E-03    5.00000E-03     1.66181E00     3.36707E02              0              0
+               0      Automatic    3.16277E-04    3.16277E-04    5.00000E-03    2.47467E-01     1.84915E01              0              1
+               0      Automatic    1.00000E-04    1.00000E-04    6.00000E-03    1.55806E-01     2.37683E00              0              2
+               0      Automatic    3.16277E-05    3.16277E-05    5.00000E-03    1.07646E-01     2.31076E00              0              2
+               0      Automatic    1.00000E-05    1.00000E-05    9.00000E-03    2.78595E-02    5.85305E-01              0              2
+               0      Automatic    3.16277E-06    3.16277E-06    5.00000E-03    1.55772E-02    3.02917E-01              0              3
+               0      Automatic    1.00000E-06    1.00000E-06    7.00000E-03    3.53955E-03    6.70049E-02              0              3
+
+ Reference Solution: referenceSolutions/01orbitReference.txt
+ Method: Dormand-Prince, order 5, embedded order 4
+          Solver   InitStepSize         AbsTol         RelTol       Time (s)       AbsError       RelError     MinSigFigs     AvgSigFigs
+               0      Automatic    1.00000E-03    1.00000E-03    7.00000E-03     1.36394E00     9.03075E01              0              0
+               0      Automatic    3.16277E-04    3.16277E-04    5.00000E-03     1.09466E00     6.75989E01              0              0
+               0      Automatic    1.00000E-04    1.00000E-04    9.00000E-03    5.39139E-01     4.87502E01              0              0
+               0      Automatic    3.16277E-05    3.16277E-05    5.00000E-03    5.70689E-01     5.17525E01              0              0
+               0      Automatic    1.00000E-05    1.00000E-05    5.00000E-03    3.74536E-01     4.59539E01              0              0
+               0      Automatic    3.16277E-06    3.16277E-06    5.00000E-03    2.25659E-01     3.71225E01              0              0
+               0      Automatic    1.00000E-06    1.00000E-06    6.00000E-03    1.28615E-01     1.63580E01              0              1
+
+ Reference Solution: referenceSolutions/burgersMOLReference.txt
+ Method: Additive Runge-Kutta, order 3, embedded order 2
+          Solver   InitStepSize         AbsTol         RelTol       Time (s)       AbsError       RelError     MinSigFigs     AvgSigFigs
+               0      Automatic    1.00000E-02    1.00000E-02     3.85400E00    4.58293E-02    2.09496E-01              0              6
+               0      Automatic    3.16277E-03    3.16277E-03     3.07500E00    2.05077E-02    7.23931E-02              0              6
+               0      Automatic    1.00000E-03    1.00000E-03     3.08400E00    8.66080E-03    4.74005E-02              0              6
+               0      Automatic    3.16277E-04    3.16277E-04     3.77900E00    2.00303E-03    1.45888E-02              0              7
+               0      Automatic    1.00000E-04    1.00000E-04     5.06600E00    8.09423E-04    5.22141E-03              0              7
+               0      Automatic    3.16277E-05    3.16277E-05     7.13600E00    3.75510E-04    2.83356E-03              0              7
+               0      Automatic    1.00000E-05    1.00000E-05     1.08770E01    1.65611E-04    1.47075E-03              0              7
+
+ Reference Solution: referenceSolutions/burgersMOLReference.txt
+ Method: Additive Runge-Kutta, order 4, embedded order 3
+          Solver   InitStepSize         AbsTol         RelTol       Time (s)       AbsError       RelError     MinSigFigs     AvgSigFigs
+               0      Automatic    1.00000E-02    1.00000E-02     7.90000E00    1.42296E-01    5.89973E-01              0              6
+               0      Automatic    3.16277E-03    3.16277E-03     6.02800E00    1.53152E-02    4.64341E-02              0              6
+               0      Automatic    1.00000E-03    1.00000E-03     4.21400E00    3.71687E-03    6.02579E-02              0              6
+               0      Automatic    3.16277E-04    3.16277E-04     4.43200E00    1.49303E-03    2.35756E-02              0              6
+               0      Automatic    1.00000E-04    1.00000E-04     5.80300E00    1.78820E-04    1.41493E-03              0              7
+               0      Automatic    3.16277E-05    3.16277E-05     7.91700E00    1.29822E-04    2.10467E-03              0              7
+               0      Automatic    1.00000E-05    1.00000E-05     1.11790E01    1.81329E-05    2.93970E-04              0              7
+
+ Reference Solution: referenceSolutions/burgersMOLReference.txt
+ Method: Additive Runge-Kutta, order 5, embedded order 4
+          Solver   InitStepSize         AbsTol         RelTol       Time (s)       AbsError       RelError     MinSigFigs     AvgSigFigs
+               0      Automatic    1.00000E-02    1.00000E-02     2.11880E01    3.62782E-02    1.82765E-01              0              6
+               0      Automatic    3.16277E-03    3.16277E-03     1.89950E01    8.43747E-04    7.02058E-03              0              6
+               0      Automatic    1.00000E-03    1.00000E-03     1.33330E01    3.36043E-04    3.82084E-03              0              7
+               0      Automatic    3.16277E-04    3.16277E-04     1.64570E01    6.91675E-05    3.27950E-04              0              7
+               0      Automatic    1.00000E-04    1.00000E-04     1.67390E01    4.01507E-05    3.09726E-04              0              7
+               0      Automatic    3.16277E-05    3.16277E-05     1.77060E01    3.04821E-05    2.95253E-04              0              8
+               0      Automatic    1.00000E-05    1.00000E-05     1.86570E01    2.40085E-05    2.80605E-04              0              8
+
+
+BUILD SUCCESSFUL
+Total time: 3 minutes 31 seconds
+\end{verbatim}
+}
+
+\section{References}
+
+\bibliography{manual}
+\bibliographystyle{plain}
+
+\end{document}
